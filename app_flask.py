@@ -1,5 +1,6 @@
 from flask import Flask, request, json
 from flask_pymongo import PyMongo
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://gitsrv01:27017/nadulich"
@@ -16,7 +17,7 @@ def pong():
 @app.route('/find', methods=['GET','POST'])
 def find():
 
-    collection, query = prepare_param(request)
+    collection, query = prepare_param(request, 'find')
 
     items = collection.find(query)
     
@@ -29,7 +30,7 @@ def find():
 
 @app.route('/insert', methods=['POST'])
 def insert():
-    collection, data = prepare_param(request)
+    collection, data = prepare_param(request, 'insert')
     if not (type(data) is list):
         data = [data]
 
@@ -40,19 +41,27 @@ def insert():
 
 @app.route('/delete', methods=['POST'])
 def delete():
-    collection, query = prepare_param(request)
+    collection, query = prepare_param(request, 'delete') 
     ans = collection.delete_many(query)
     
     return answer(count=ans.deleted_count)
 
-def prepare_param(request):
+def prepare_param(request, action):
     collect = request.args.get('collect')
     collection = mongo.db[collect]
 
-    query_json = request.data.decode()
-    query = json.loads(query_json)
+    data_json = request.data.decode()
+    data = json.loads(data_json)
 
-    return (collection, query)
+    debug_data = {
+        'action': action,
+        'current_time': datetime.today().timetz,
+        'arg':request.args,
+        'data': data,
+        }
+    mongo.db['debug'].insert_one(debug_data)
+    
+    return (collection, data)
 
 def answer(**kwarg):
     ans = {'result': 'ok'}
