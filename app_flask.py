@@ -25,15 +25,25 @@ def find():
         item['_id'] = str(item['_id'])
         res.append(item)
 
-    return json.dumps(res, indent=4)
+    return answer(items=res, count=len(res))
 
-@app.route('/insert_one', methods=['POST'])
-def insert_one():
+@app.route('/insert', methods=['POST'])
+def insert():
+    collection, data = prepare_param(request)
+    if not (type(data) is list):
+        data = [data]
+
+    records = collection.insert_many(data)
+    id_list = list(map(str, records.inserted_ids))
+    
+    return answer(inserted_ids=id_list, count=len(id_list))
+
+@app.route('/delete', methods=['POST'])
+def delete():
     collection, query = prepare_param(request)
-
-    items = collection.insert_one(query)
-
-    return "{'result':'ok'}"
+    ans = collection.delete_many(query)
+    
+    return answer(count=ans.deleted_count)
 
 def prepare_param(request):
     collect = request.args.get('collect')
@@ -44,6 +54,12 @@ def prepare_param(request):
 
     return (collection, query)
 
+def answer(**kwarg):
+    ans = {'result': 'ok'}
+    for k,v in kwarg.items():
+        ans[k] = v
+
+    return json.dumps(ans, indent=2)
 
 if __name__ == '__main__':
         app.run(host='0.0.0.0', debug=True)
