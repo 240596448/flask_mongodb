@@ -51,15 +51,15 @@ def prepare_param(request, action):
     collection = mongo.db[collect]
 
     data_json: str = request.data.decode()
-    data = json.loads(data_json)
+    data = json.loads(data_json) if data_json != '' else {}
 
     debug_data = {
         'action': action,
-        'current_time': datetime.today().timetz,
+        'current_time': datetime.today(),
         'arg':request.args,
         'data': data,
         }
-    mongo.db['debug'].insert_one(debug_data)
+    # mongo.db['debug'].insert_one(debug_data)
     
     return (collection, data)
 
@@ -71,4 +71,5 @@ def answer(**kwarg) -> str:
     return json.dumps(ans, indent=2)
 
 if __name__ == '__main__':
-        app.run(host='0.0.0.0', debug=True)
+        # app.run(host='0.0.0.0', debug=True)
+        app.run(host='0.0.0.0', debug=False)
