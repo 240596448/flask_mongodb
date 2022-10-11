@@ -47,10 +47,10 @@ def delete():
     return answer(count=ans.deleted_count)
 
 def prepare_param(request, action):
-    collect = request.args.get('collect')
+    collect: str = request.args.get('collect')
     collection = mongo.db[collect]
 
-    data_json = request.data.decode()
+    data_json: str = request.data.decode()
     data = json.loads(data_json)
 
     debug_data = {
@@ -63,7 +63,7 @@ def prepare_param(request, action):
     
     return (collection, data)
 
-def answer(**kwarg):
+def answer(**kwarg) -> str:
     ans = {'result': 'ok'}
     for k,v in kwarg.items():
         ans[k] = v
